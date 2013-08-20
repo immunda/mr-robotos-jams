@@ -23,13 +23,11 @@ class JamCollection(object):
         self.jam_filepaths = {}
         self.queue = []
         self.current_track = None
-
-    def skip(self):
-        pass
+        self.play_proc = None
 
     def play(self):
         if len(self.queue) > 0:
-            track_id = self.queue[0]
+            track_id = self.queue.pop(0)
             self.play_track(track_id)
         return
 
@@ -69,13 +67,18 @@ class JamCollection(object):
         self.jam_filepaths[filepath] = new_track.id
         self.add_to_queue(new_track.id)
 
+    def next(self):
+        if self.play_proc is not None:
+            self.play_proc.terminate()
+        self.play()
+
     def play_track(self, track_id):
         track = self.get_track(track_id)
         happy_file_name = track.filepath.split('/')[-1].split('.')[0]
         intro_voice_proc = subprocess.Popen(["say", happy_file_name], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         intro_voice_proc.wait()
         sleep(2)
-        play_proc = subprocess.Popen(["mpg321", track.filepath], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        self.play_proc = subprocess.Popen(["mpg321", track.filepath], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
     def change_track_filepath(self, old_filepath, new_filepath):
         track = self.get_track_by_filepath(old_filepath)
@@ -94,6 +97,7 @@ class JamCollection(object):
         success = self.remove_track(track_id)
         if success:
             del self.jam_filepaths[filepath]
+
 
 class JamFileHandler(FileSystemEventHandler):
 

@@ -4,6 +4,7 @@ import os
 import time
 from watchdog.observers import Observer
 from collection import JamCollection, JamFileHandler
+from terminal import Terminal
 
 JAM_DIR = "/Users/phil/Rushmore jams/"
 
@@ -19,14 +20,17 @@ if __name__ == "__main__":
         if len(files_with_paths) > 0:
             jam_collection.batch_add_tracks(files_with_paths)
 
-    jam_collection.play()
     event_handler = JamFileHandler(jam_collection)
+
     observer.schedule(event_handler, JAM_DIR, recursive=True)
     observer.start()
 
+    term = Terminal(jam_collection)
+    term.cmdloop()
+
     try:
         while True:
-            time.sleep(5)
+            time.sleep(1)
     except KeyboardInterrupt:
         observer.stop()
-    observer.join()
+    # observer.join()
