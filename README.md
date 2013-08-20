@@ -1,4 +1,4 @@
-mr-robotos-jams
+Mr. Roboto's jams
 ===============
 
 Bleep bloop music player.
