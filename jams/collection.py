@@ -4,6 +4,7 @@ import subprocess
 from time import sleep
 from watchdog.events import FileSystemEventHandler
 import uuid
+from mutagen import File
 
 
 class JamTrack(object):
@@ -11,6 +12,17 @@ class JamTrack(object):
     def __init__(self, filepath, *args, **kwargs):
         self.id = uuid.uuid1()
         self.filepath = filepath
+        metadata = File(filepath)
+        if 'TIT2' in metadata:
+            self.title = str(metadata['TIT2'])
+        else:
+            self.title = 'Untitled Track'
+
+        if 'TPE1' in metadata:
+            self.artist = str(metadata['TPE1'])
+        else:
+            self.artist = 'Unkown Artist'
+        print self.title
 
     def change_filepath(self, new_filepath):
         self.filepath = new_filepath
@@ -74,8 +86,8 @@ class JamCollection(object):
 
     def play_track(self, track_id):
         track = self.get_track(track_id)
-        happy_file_name = track.filepath.split('/')[-1].split('.')[0]
-        intro_voice_proc = subprocess.Popen(["say", happy_file_name], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+#        happy_file_name = track.filepath.split('/')[-1].split('.')[0]
+        intro_voice_proc = subprocess.Popen(["say", "%s by %s" % (track.title, track.artist)], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         intro_voice_proc.wait()
         sleep(2)
         self.play_proc = subprocess.Popen(["mpg321", track.filepath], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
