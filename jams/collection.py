@@ -1,10 +1,8 @@
 # -*- coding: utf-8 -*- 
-import logging
-import subprocess
-from time import sleep
 from watchdog.events import FileSystemEventHandler
 import uuid
 from mutagen import File
+from random import choice
 
 
 class JamTrack(object):
@@ -22,7 +20,12 @@ class JamTrack(object):
             self.artist = str(metadata['TPE1'])
         else:
             self.artist = 'Unkown Artist'
-        print self.title
+
+    def get_artist(self):
+        return self.artist
+
+    def get_title(self):
+        return self.title
 
     def change_filepath(self, new_filepath):
         self.filepath = new_filepath
@@ -35,16 +38,11 @@ class JamCollection(object):
         self.jam_filepaths = {}
         self.queue = []
         self.current_track = None
-        self.play_proc = None
-
-    def play(self):
-        if len(self.queue) > 0:
-            track_id = self.queue.pop(0)
-            self.play_track(track_id)
-        return
 
     def stats(self):
-        print '%s tracks' % len(self.jams)
+        stats_str = '%s tracks' % len(self.jams)
+        stats_str += '\n'
+        print stats_str
 
     @staticmethod
     def valid_file_check(filepath):
@@ -56,6 +54,17 @@ class JamCollection(object):
         track = self.jams.get(track_id, None)
         if track is not None:
             return track
+
+    def get_next_track(self):
+        track_id = self.queue.pop(0)
+        self.queue.append(track_id)
+        return self.jams[track_id]
+
+    def get_random_track(self):
+        random_track_id = choice(self.queue)
+        track_index = self.queue.index(random_track_id)
+        self.queue.pop(track_index)
+        self.queue.append(random_track_id)
 
     def get_track_by_filepath(self, filepath):
         track_id = self.jam_filepaths.get(filepath, None)
@@ -78,19 +87,6 @@ class JamCollection(object):
         self.jams[new_track.id] = new_track 
         self.jam_filepaths[filepath] = new_track.id
         self.add_to_queue(new_track.id)
-
-    def next(self):
-        if self.play_proc is not None:
-            self.play_proc.terminate()
-        self.play()
-
-    def play_track(self, track_id):
-        track = self.get_track(track_id)
-#        happy_file_name = track.filepath.split('/')[-1].split('.')[0]
-        intro_voice_proc = subprocess.Popen(["say", "%s by %s" % (track.title, track.artist)], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        intro_voice_proc.wait()
-        sleep(2)
-        self.play_proc = subprocess.Popen(["mpg321", track.filepath], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
     def change_track_filepath(self, old_filepath, new_filepath):
         track = self.get_track_by_filepath(old_filepath)
