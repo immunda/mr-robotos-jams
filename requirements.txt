@@ -1,0 +1,9 @@
+PyYAML==3.10
+argh==0.23.2
+bson==0.3.3
+distribute==0.6.28
+mutagen==1.21
+pathtools==0.1.2
+pytz==2013b
+watchdog==0.6.0
+wsgiref==0.1.2
